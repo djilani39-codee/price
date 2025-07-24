@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>حاسبة سعر التوصيل</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; direction: rtl; margin: 0; padding: 0; }
+    h2 { background: #2d89ef; color: #fff; margin: 0; padding: 10px; }
+    #map { height: 400px; width: 100%; }
+    #info { padding: 10px; background: #f7f7f7; border-top: 2px solid #ddd; }
+    #info p { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2>حساب سعر التوصيل</h2>
+  <div id="map"></div>
+  <div id="info">
+    <p>انقر على موقعك على الخريطة لمعرفة المسافة والسعر.</p>
+    <p id="distance">المسافة: 0 كم</p>
+    <p id="price">سعر التوصيل: 0 دج</p>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // إحداثيات المطعم (يمكنك تعديلها)
+    const restaurant = [36.7372, 3.0863]; // مثال: الجزائر العاصمة
+    const pricePerKm = 100; // 100 دج لكل كم
+    const basePrice = 200;  // سعر ثابت
+
+    // إنشاء الخريطة
+    const map = L.map('map').setView(restaurant, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ضع علامة على المطعم
+    L.marker(restaurant).addTo(map).bindPopup('المطعم').openPopup();
+
+    // عند النقر على الخريطة احسب المسافة والسعر
+    map.on('click', function (e) {
+      const userLocation = [e.latlng.lat, e.latlng.lng];
+      const distance = map.distance(restaurant, userLocation) / 1000; // بالكيلومتر
+      const totalPrice = basePrice + (distance * pricePerKm);
+
+      document.getElementById('distance').innerText = "المسافة: " + distance.toFixed(2) + " كم";
+      document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice.toFixed(0) + " دج";
+
+      // ضع علامة على مكان الزبون
+      L.marker(userLocation).addTo(map).bindPopup("موقعك").openPopup();
+    });
+  </script>
+</body>
+</html>
