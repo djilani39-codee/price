@@ -27,12 +27,27 @@
     // إحداثيات المطعم
     const restaurant = [33.366554980816396, 6.861936208140929];
 
-    // دالة تحديد السعر حسب المسافة
-    function calculatePrice(distance) {
-      if (distance <= 3) return 200;
-      else if (distance <= 6) return 300;
-      else if (distance <= 10) return 400;
-      else return 500;
+    // جدول الأسعار
+    const priceTable = [
+      { d_from: 0,   d_to: 0.2, price: 100 },
+      { d_from: 0.2, d_to: 1.2, price: 130 },
+      { d_from: 1.2, d_to: 2.3, price: 180 },
+      { d_from: 2.3, d_to: 3.9, price: 230 },
+      { d_from: 3.9, d_to: 4.9, price: 280 },
+      { d_from: 4.9, d_to: 5.7, price: 330 },
+      { d_from: 5.7, d_to: 6.7, price: 380 },
+      { d_from: 6.7, d_to: 7,   price: 430 },
+      { d_from: 7,   d_to: 8,   price: 480 }
+    ];
+
+    // دالة تحديد السعر من الجدول
+    function getPrice(distance) {
+      for (const row of priceTable) {
+        if (distance >= row.d_from && distance <= row.d_to) {
+          return row.price;
+        }
+      }
+      return "غير متوفر"; // إذا المسافة أكبر من آخر قيمة
     }
 
     // إنشاء الخريطة
@@ -42,20 +57,20 @@
     }).addTo(map);
     L.marker(restaurant).addTo(map).bindPopup('المطعم').openPopup();
 
-    // الحصول على موقع الزبون مباشرة
+    // تحديد موقع الزبون تلقائيًا
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const userLocation = [position.coords.latitude, position.coords.longitude];
 
         // حساب المسافة
         const distance = map.distance(restaurant, userLocation) / 1000; // كم
-        const totalPrice = calculatePrice(distance);
+        const totalPrice = getPrice(distance);
 
         document.getElementById('status').innerText = "تم تحديد موقعك";
         document.getElementById('distance').innerText = "المسافة: " + distance.toFixed(2) + " كم";
         document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice + " دج";
 
-        // ضع علامة لموقع الزبون
+        // ضع علامة على موقع الزبون
         L.marker(userLocation).addTo(map).bindPopup("موقعك").openPopup();
         map.setView(userLocation, 13);
       }, () => {
