@@ -8,26 +8,26 @@
   <style>
     body { font-family: Arial, sans-serif; text-align: center; direction: rtl; margin: 0; padding: 0; }
     h2 { background: #2d89ef; color: #fff; margin: 0; padding: 10px; }
-    #map { height: 400px; width: 100%; }
+    #map { height: 400px; width: 100%; margin-top: 10px; }
     #info { padding: 10px; background: #f7f7f7; border-top: 2px solid #ddd; }
     #info p { font-size: 18px; }
   </style>
 </head>
 <body>
   <h2>حساب سعر التوصيل</h2>
-  <div id="map"></div>
   <div id="info">
-    <p>انقر على موقعك على الخريطة لمعرفة المسافة والسعر.</p>
-    <p id="distance">المسافة: 0 كم</p>
-    <p id="price">سعر التوصيل: 0 دج</p>
+    <p id="status">جارٍ تحديد موقعك...</p>
+    <p id="distance">المسافة: -</p>
+    <p id="price">سعر التوصيل: -</p>
   </div>
+  <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     // إحداثيات المطعم
     const restaurant = [33.366554980816396, 6.861936208140929];
 
-    // دالة لتحديد السعر حسب الشرائح
+    // دالة تحديد السعر حسب المسافة
     function calculatePrice(distance) {
       if (distance <= 3) return 200;
       else if (distance <= 6) return 300;
@@ -40,22 +40,30 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-
-    // ضع علامة على المطعم
     L.marker(restaurant).addTo(map).bindPopup('المطعم').openPopup();
 
-    // عند النقر على الخريطة
-    map.on('click', function (e) {
-      const userLocation = [e.latlng.lat, e.latlng.lng];
-      const distance = map.distance(restaurant, userLocation) / 1000; // بالكيلومتر
-      const totalPrice = calculatePrice(distance);
+    // الحصول على موقع الزبون مباشرة
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const userLocation = [position.coords.latitude, position.coords.longitude];
 
-      document.getElementById('distance').innerText = "المسافة: " + distance.toFixed(2) + " كم";
-      document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice + " دج";
+        // حساب المسافة
+        const distance = map.distance(restaurant, userLocation) / 1000; // كم
+        const totalPrice = calculatePrice(distance);
 
-      // ضع علامة على موقع الزبون
-      L.marker(userLocation).addTo(map).bindPopup("موقعك").openPopup();
-    });
+        document.getElementById('status').innerText = "تم تحديد موقعك";
+        document.getElementById('distance').innerText = "المسافة: " + distance.toFixed(2) + " كم";
+        document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice + " دج";
+
+        // ضع علامة لموقع الزبون
+        L.marker(userLocation).addTo(map).bindPopup("موقعك").openPopup();
+        map.setView(userLocation, 13);
+      }, () => {
+        document.getElementById('status').innerText = "لم يتم السماح بتحديد موقعك.";
+      });
+    } else {
+      document.getElementById('status').innerText = "ميزة تحديد الموقع غير مدعومة في هذا المتصفح.";
+    }
   </script>
 </body>
 </html>
