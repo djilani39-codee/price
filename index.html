@@ -26,8 +26,14 @@
   <script>
     // إحداثيات المطعم
     const restaurant = [33.366554980816396, 6.861936208140929];
-    const pricePerKm = 100; // 100 دج لكل كم
-    const basePrice = 200;  // سعر ثابت
+
+    // دالة لتحديد السعر حسب الشرائح
+    function calculatePrice(distance) {
+      if (distance <= 3) return 200;
+      else if (distance <= 6) return 300;
+      else if (distance <= 10) return 400;
+      else return 500;
+    }
 
     // إنشاء الخريطة
     const map = L.map('map').setView(restaurant, 13);
@@ -35,17 +41,17 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // علامة المطعم
+    // ضع علامة على المطعم
     L.marker(restaurant).addTo(map).bindPopup('المطعم').openPopup();
 
-    // حساب المسافة عند النقر
+    // عند النقر على الخريطة
     map.on('click', function (e) {
       const userLocation = [e.latlng.lat, e.latlng.lng];
       const distance = map.distance(restaurant, userLocation) / 1000; // بالكيلومتر
-      const totalPrice = basePrice + (distance * pricePerKm);
+      const totalPrice = calculatePrice(distance);
 
       document.getElementById('distance').innerText = "المسافة: " + distance.toFixed(2) + " كم";
-      document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice.toFixed(0) + " دج";
+      document.getElementById('price').innerText = "سعر التوصيل: " + totalPrice + " دج";
 
       // ضع علامة على موقع الزبون
       L.marker(userLocation).addTo(map).bindPopup("موقعك").openPopup();
